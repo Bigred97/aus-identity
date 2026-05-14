@@ -1,0 +1,52 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "aus-identity"
+version = "0.1.0"
+description = "Cross-source join keys for Australian public data — postcode ↔ state crosswalks, state-code normalisation, more coming. Foundation for tools that talk to multiple AU government data sources."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Harry Vass" }]
+keywords = [
+    "australia",
+    "postcode",
+    "state",
+    "geography",
+    "identity",
+    "crosswalk",
+    "abs",
+    "ato",
+    "asgs",
+    "anzsic",
+    "anzsco",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+]
+
+[project.urls]
+Homepage = "https://github.com/Bigred97/aus-identity"
+Issues = "https://github.com/Bigred97/aus-identity/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/aus_identity"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
