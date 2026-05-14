@@ -1,0 +1,192 @@
+# aus-identity — full reference
+
+> Canonical Australian identifier normalisation (postcode, state) shared across the AU public-data MCP portfolio.
+
+aus-identity is a Python helper library (not an MCP server). The foundation layer for tools that need to talk to multiple AU government data sources at once or any application that has to map between Australia's postcode and state/territory conventions. v0.1.0 covers postcode + state crosswalks; future versions extend to ASGS / ABN / ANZSIC / ANZSCO.
+
+This document is a single-file API reference. Pure Python, zero runtime dependencies, wheel < 20 KB.
+
+---
+
+## Install
+
+```bash
+pip install aus-identity
+# or
+uv add aus-identity
+```
+
+---
+
+## Public API
+
+```python
+from aus_identity import (
+    postcode_to_state,
+    normalize_postcode,
+    is_valid_postcode,
+    normalize_state,
+    state_full_name,
+    STATE_NAMES,
+)
+```
+
+---
+
+## Functions
+
+### normalize_state(state: str) -> str
+
+Normalise a state reference to the canonical 2-3 letter short code (`NSW`, `VIC`, `QLD`, `SA`, `WA`, `TAS`, `NT`, `ACT`).
+
+Accepts short codes, ISO 3166-2 codes (`AU-NSW`), full names, common aliases, and casual variants (`"nsw"`, `"New_South_Wales"`, `"AU-VIC"`, `"Tassie"`).
+
+Raises `ValueError` with a "did you mean" hint if the input cannot be matched.
+
+```python
+normalize_state("NSW")               # 'NSW'
+normalize_state("nsw")               # 'NSW'
+normalize_state("New South Wales")   # 'NSW'
+normalize_state("New_South_Wales")   # 'NSW' (LLM payload form)
+normalize_state("AU-VIC")            # 'VIC'
+normalize_state("Tassie")            # 'TAS'
+```
+
+### state_full_name(state: str) -> str
+
+Return the official full name for a state/territory code. Accepts anything `normalize_state` accepts. Raises `ValueError` if not matched.
+
+```python
+state_full_name("NSW")     # 'New South Wales'
+state_full_name("nsw")     # 'New South Wales'
+state_full_name("AU-VIC")  # 'Victoria'
+state_full_name("Tassie")  # 'Tasmania'
+state_full_name("act")     # 'Australian Capital Territory'
+```
+
+### normalize_postcode(postcode: str | int) -> str
+
+Coerce a postcode to canonical 4-digit string form.
+
+Accepts 4-digit string, 3-digit shorthand (ACT/NT), integer, or string with whitespace. Raises `ValueError` if the normalised value isn't exactly 4 digits or if input isn't a `str` / `int`.
+
+```python
+normalize_postcode("2000")     # '2000'
+normalize_postcode(800)        # '0800'  (ACT/NT 3-digit shorthand padded)
+normalize_postcode("  3000  ") # '3000'
+normalize_postcode(2000)       # '2000'
+```
+
+### is_valid_postcode(postcode: str | int) -> bool
+
+Return True iff the value is a recognisable AU 4-digit postcode (normalises cleanly AND falls in a known state range). Never raises — safe to use as a filter for arbitrary input.
+
+```python
+is_valid_postcode("2000")    # True
+is_valid_postcode(3000)      # True
+is_valid_postcode("ABC")     # False
+is_valid_postcode("0000")    # False (not in any state range)
+is_valid_postcode(None)      # False
+```
+
+### postcode_to_state(postcode: str | int) -> str
+
+Return the ISO-style state code for an AU postcode. Returns one of `NSW`, `VIC`, `QLD`, `SA`, `WA`, `TAS`, `NT`, `ACT`.
+
+Raises `ValueError` if `postcode` is malformed or doesn't fall in any known state range.
+
+```python
+postcode_to_state("2000")    # 'NSW'  (Sydney CBD)
+postcode_to_state("3000")    # 'VIC'  (Melbourne CBD)
+postcode_to_state("2600")    # 'ACT'  (Parliament House — not NSW)
+postcode_to_state("0800")    # 'NT'   (Darwin)
+postcode_to_state(6000)      # 'WA'   (int input also accepted)
+```
+
+### STATE_NAMES
+
+`Final[dict[str, str]]` mapping short code → full name for all 8 AU jurisdictions:
+
+```python
+STATE_NAMES = {
+    "NSW": "New South Wales",
+    "VIC": "Victoria",
+    "QLD": "Queensland",
+    "SA":  "South Australia",
+    "WA":  "Western Australia",
+    "TAS": "Tasmania",
+    "NT":  "Northern Territory",
+    "ACT": "Australian Capital Territory",
+}
+```
+
+---
+
+## Postcode → state range table
+
+| Range | State |
+|---|---|
+| 0200-0299 | ACT |
+| 2600-2618 | ACT (Canberra inner) |
+| 2900-2920 | ACT (Canberra outer) |
+| 0800-0899 | NT |
+| 1000-2599 | NSW |
+| 2619-2899 | NSW |
+| 2921-2999 | NSW |
+| 3000-3999 | VIC |
+| 4000-4999 | QLD |
+| 5000-5999 | SA |
+| 6000-6999 | WA |
+| 7000-7999 | TAS |
+| 8000-8999 | VIC (PO Box block) |
+| 9000-9999 | QLD (PO Box block) |
+
+Mappings sourced from Australia Post's public postcode boundary publication and cross-checked against ABS ASGS Edition 3 (2021) state-of-residence assignments. Coverage 99%+ of currently-active AU postcodes. ACT carves out of NSW with three separate ranges.
+
+For exact suburb-level precision (which side of an ACT/NSW boundary a specific delivery address falls), use ABS ASGS sub-state codes — planned for aus-identity v0.2.
+
+---
+
+## Why this exists
+
+The AU public-data MCP stack (abs-mcp, rba-mcp, ato-mcp, apra-mcp, aihw-mcp, asic-mcp, aemo-mcp, au-weather-mcp, wgea-mcp) lets an LLM agent talk to any single Australian government data source. But each agency uses its own identifier conventions:
+
+- ABS uses ASGS region codes (`1GSYD` for Greater Sydney, `101011001` for an SA1)
+- ATO uses 4-digit postcodes
+- APRA uses ABNs
+- ASIC uses licence numbers
+- AEMO uses NEM region codes (`NSW1`, `QLD1`)
+- au-weather uses location keys and lat/long
+- RBA uses F-table IDs and series codes
+- WGEA uses ABNs + reporting-year labels
+
+To use any two of these together — "what's the median household income vs unemployment rate in postcode 2000?" — something has to translate between identifier systems. **aus-identity is that something.** v0.1 starts with the most-used crosswalk (postcode ↔ state); v0.2+ extends to ASGS / ABN / ANZSIC / ANZSCO.
+
+---
+
+## Roadmap
+
+- **v0.1.0** (current) — postcode + state crosswalks
+- **v0.2** — ASGS 2021 sub-state crosswalk (SA1 ↔ SA2 ↔ SA3 ↔ SA4 ↔ GCCSA ↔ state)
+- **v0.3** — ABN ↔ ACN ↔ ACNC charity-ID crosswalk
+- **v0.4** — ANZSIC industry codes + ANZSCO occupation codes
+
+---
+
+## Used by
+
+- [abs-mcp](https://pypi.org/project/abs-mcp/) — region filters on every curated dataflow
+- [rba-mcp](https://pypi.org/project/rba-mcp/) — region context
+- [ato-mcp](https://pypi.org/project/ato-mcp/) — state + postcode filters
+- [apra-mcp](https://pypi.org/project/apra-mcp/) — state_territory filter on INSURANCE_GENERAL
+- [aihw-mcp](https://pypi.org/project/aihw-mcp/) — state filter on HEALTH_EXPENDITURE, PUBLIC_HOSPITALS, YOUTH_JUSTICE_DETENTION
+- [asic-mcp](https://pypi.org/project/asic-mcp/) — state filter on every register
+- [aemo-mcp](https://pypi.org/project/aemo-mcp/) — region context (AEMO uses NSW1/QLD1/SA1/TAS1/VIC1; the trailing `1` is part of the canonical AEMO region code)
+- [au-weather-mcp](https://pypi.org/project/au-weather-mcp/) — location parameter accepts state codes and postcodes
+- [wgea-mcp](https://pypi.org/project/wgea-mcp/) — WGEA uses ABNs as primary entity key; aus-identity ABN support coming in v0.3
+
+---
+
+## License
+
+MIT.

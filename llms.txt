@@ -1,0 +1,34 @@
+# aus-identity
+
+> Canonical Australian identifier normalisation (postcode, state) shared across the AU public-data MCP portfolio. Zero runtime dependencies; pure Python; wheel < 20 KB.
+
+aus-identity is a Python helper library — not an MCP server. It provides the cross-source join keys for Australian public data: postcode ↔ state, state code normalisation, postcode validation. Each agency in the AU public-data stack uses different identifier conventions (ABS uses ASGS region codes, ATO uses 4-digit postcodes, AEMO uses NEM region codes); aus-identity is the foundation layer that lets MCP servers like abs-mcp, ato-mcp, apra-mcp, aihw-mcp, asic-mcp accept any AU location input shape and resolve it to a canonical form.
+
+v0.1.0 covers postcode ↔ state with the three ACT-inside-NSW carve-outs handled correctly. v0.2 will extend to ASGS 2021 sub-state crosswalks; v0.3 to ABN ↔ ACN ↔ ACNC charity-ID; v0.4 to ANZSIC + ANZSCO codes.
+
+## Documentation
+
+- [README](https://github.com/Bigred97/aus-identity/blob/main/README.md): Full API + worked examples + roadmap
+- [CHANGELOG](https://github.com/Bigred97/aus-identity/blob/main/CHANGELOG.md): Release history
+- [PyPI](https://pypi.org/project/aus-identity/): `pip install aus-identity` or `uv add aus-identity`
+
+## Functions
+
+- normalize_state(s): "nsw" / "NSW" / "New South Wales" / "New_South_Wales" / "AU-VIC" / "Tassie" → canonical 2-3 letter code ("NSW", "VIC", "TAS")
+- state_full_name(s): "NSW" / "nsw" / "AU-VIC" → "New South Wales" / "Victoria" / ...
+- normalize_postcode(p): "2000" / 2000 / "  2000  " / "800" / 800 → canonical 4-digit string ("2000", "0800")
+- is_valid_postcode(p): boolean. Never raises — safe for filtering arbitrary input
+- postcode_to_state(p): "2000" → "NSW" / "2600" → "ACT" / "0800" → "NT" / 6000 → "WA". Handles ACT-inside-NSW carve-outs (0200-0299, 2600-2618, 2900-2920)
+- STATE_NAMES: dict mapping short code → full name for all 8 jurisdictions
+
+## Used by
+
+- [abs-mcp](https://pypi.org/project/abs-mcp/) — region filters on every curated dataflow
+- [rba-mcp](https://pypi.org/project/rba-mcp/) — region context
+- [ato-mcp](https://pypi.org/project/ato-mcp/) — state + postcode filters
+- [apra-mcp](https://pypi.org/project/apra-mcp/) — state_territory filter on INSURANCE_GENERAL
+- [aihw-mcp](https://pypi.org/project/aihw-mcp/) — state filter on HEALTH_EXPENDITURE, PUBLIC_HOSPITALS, YOUTH_JUSTICE_DETENTION
+- [asic-mcp](https://pypi.org/project/asic-mcp/) — state filter on every register
+- [aemo-mcp](https://pypi.org/project/aemo-mcp/) — region context (note: AEMO uses NSW1/QLD1/SA1/TAS1/VIC1; the trailing `1` is part of the canonical AEMO region code)
+- [au-weather-mcp](https://pypi.org/project/au-weather-mcp/) — location parameter accepts state codes and postcodes
+- [wgea-mcp](https://pypi.org/project/wgea-mcp/) — sister; WGEA uses ABNs as primary entity key
