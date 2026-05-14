@@ -11,17 +11,9 @@ requires-python = ">=3.11"
 license = { text = "MIT" }
 authors = [{ name = "Harry Vass" }]
 keywords = [
-    "australia",
-    "postcode",
-    "state",
-    "geography",
-    "identity",
-    "crosswalk",
-    "abs",
-    "ato",
-    "asgs",
-    "anzsic",
-    "anzsco",
+    "australia", "australian", "public-data", "government-data",
+    "postcode", "state", "geography", "identity", "crosswalk",
+    "abs", "ato", "asgs", "anzsic", "anzsco", "abn",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -42,7 +34,11 @@ dev = [
 
 [project.urls]
 Homepage = "https://github.com/Bigred97/aus-identity"
+Documentation = "https://github.com/Bigred97/aus-identity#readme"
+Repository = "https://github.com/Bigred97/aus-identity"
 Issues = "https://github.com/Bigred97/aus-identity/issues"
+Changelog = "https://github.com/Bigred97/aus-identity/blob/main/CHANGELOG.md"
+PyPI = "https://pypi.org/project/aus-identity/"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/aus_identity"]

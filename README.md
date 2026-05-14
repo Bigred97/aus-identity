@@ -2,7 +2,8 @@
 
 [![PyPI](https://img.shields.io/pypi/v/aus-identity.svg)](https://pypi.org/project/aus-identity/)
 [![Python](https://img.shields.io/pypi/pyversions/aus-identity.svg)](https://pypi.org/project/aus-identity/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License](https://img.shields.io/pypi/l/aus-identity.svg)](https://github.com/Bigred97/aus-identity/blob/main/LICENSE)
+[![Tests](https://github.com/Bigred97/aus-identity/actions/workflows/test.yml/badge.svg)](https://github.com/Bigred97/aus-identity/actions/workflows/test.yml)
 
 Cross-source join keys for Australian public data. The foundation layer for tools that need to talk to multiple AU government data sources at once (ABS demographics + ATO income + APRA banking + au-weather climate + ASIC company register + RBA monetary stats), or for any application that has to map between Australia's postcode and state/territory conventions.
 
@@ -65,16 +66,30 @@ state_full_name("act")          # "Australian Capital Territory"
 
 ## Why this exists
 
-The AU public-data MCP stack ([abs-mcp](https://github.com/Bigred97/abs-mcp), [rba-mcp](https://github.com/Bigred97/rba-mcp), [ato-mcp](https://github.com/Bigred97/ato-mcp), [apra-mcp](https://github.com/Bigred97/apra-mcp), [aihw-mcp](https://github.com/Bigred97/aihw-mcp), [asic-mcp](https://github.com/Bigred97/asic-mcp), [au-weather-mcp](https://github.com/Bigred97/au-weather-mcp)) lets an LLM agent talk to any single Australian government data source. But each agency uses its own identifier conventions:
+The AU public-data MCP stack ([abs-mcp](https://pypi.org/project/abs-mcp/), [rba-mcp](https://pypi.org/project/rba-mcp/), [ato-mcp](https://pypi.org/project/ato-mcp/), [apra-mcp](https://pypi.org/project/apra-mcp/), [aihw-mcp](https://pypi.org/project/aihw-mcp/), [asic-mcp](https://pypi.org/project/asic-mcp/), [aemo-mcp](https://pypi.org/project/aemo-mcp/), [au-weather-mcp](https://pypi.org/project/au-weather-mcp/), [wgea-mcp](https://pypi.org/project/wgea-mcp/)) lets an LLM agent talk to any single Australian government data source. But each agency uses its own identifier conventions:
 
 - ABS uses ASGS region codes (`1GSYD` for Greater Sydney, `101011001` for an SA1)
 - ATO uses 4-digit postcodes
 - APRA uses ABNs
 - ASIC uses licence numbers
+- AEMO uses NEM region codes (`NSW1`, `QLD1`)
 - au-weather uses location keys and lat/long
 - RBA uses F-table IDs and series codes
+- WGEA uses ABNs + reporting-year labels
 
 To use any two of these together — "what's the median household income vs unemployment rate in postcode 2000?" — something has to translate between identifier systems. **aus-identity is that something.** v0.1 starts with the most-used crosswalk (postcode ↔ state); v0.2+ will extend to ASGS / ABN / ANZSIC / ANZSCO.
+
+## Used by
+
+- [abs-mcp](https://pypi.org/project/abs-mcp/) — Australian Bureau of Statistics
+- [rba-mcp](https://pypi.org/project/rba-mcp/) — Reserve Bank of Australia
+- [ato-mcp](https://pypi.org/project/ato-mcp/) — Australian Taxation Office
+- [apra-mcp](https://pypi.org/project/apra-mcp/) — Australian Prudential Regulation Authority
+- [aihw-mcp](https://pypi.org/project/aihw-mcp/) — Australian Institute of Health and Welfare
+- [asic-mcp](https://pypi.org/project/asic-mcp/) — Australian Securities and Investments Commission
+- [aemo-mcp](https://pypi.org/project/aemo-mcp/) — Australian Energy Market Operator
+- [au-weather-mcp](https://pypi.org/project/au-weather-mcp/) — Open-Meteo (Bureau of Meteorology aggregator)
+- [wgea-mcp](https://pypi.org/project/wgea-mcp/) — Workplace Gender Equality Agency
 
 ## Source of truth
 
