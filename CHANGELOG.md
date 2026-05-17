@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.3.3 (2026-05-18)
+
+### Fixed — ANZSIC subdivision-72 mapping ambiguity
+
+Lint sweep surfaced an F601 (duplicate dict key) in `anzsic.py`:
+subdivision 72 was assigned to BOTH Division M and Division N. Python
+silently picked the last entry (N), so `subdivision_to_division("72")`
+was returning "N" — contradicting the inline comment "M wins" and
+the portfolio-canonical mapping for ANZSIC 72 (Computer System Design
+and Related Services).
+
+Fix: removed the duplicate `"72": "N"` entry. Code 72 now consistently
+maps to Division M. Code 73 (Public Administration and Safety services)
+remains in Division N. Updated the section comment to document the
+deliberate choice and the dual-coverage rationale.
+
+Customers using `subdivision_to_division("72")` will now get "M"
+(Professional/Scientific/Technical Services) instead of "N"
+(Administrative and Support Services). Behaviour change: bumped minor
+patch to surface in pinning.
+
+139 unit tests pass.
+
 ## 0.3.2 (2026-05-17)
 
 ### Republish 0.3.1 — original commit landed without the pyproject bump

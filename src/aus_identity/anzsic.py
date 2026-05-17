@@ -79,7 +79,11 @@ _SUBDIV_TO_DIVISION: Final[dict[str, str]] = {
     # M — Professional, Scientific and Technical Services
     "69": "M", "70": "M", "71": "M", "72": "M",
     # N — Administrative and Support Services
-    "72": "N", "73": "N",  # 72 has both M (72.10/72.20) and N (72.50) groups; M wins
+    # NOTE: Subdivision 72 spans BOTH M (72.10/72.20 — Computer System Design)
+    # and N (72.50 — Other services). The portfolio-canonical mapping is
+    # M (above) because customers usually mean Computer System Design when
+    # they reference ANZSIC 72. The N-side codes (73) are mapped here.
+    "73": "N",
     # O — Public Administration and Safety
     "75": "O", "76": "O", "77": "O",
     # P — Education and Training
