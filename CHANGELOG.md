@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.2 (2026-05-17)
+
+### Republish 0.3.1 — original commit landed without the pyproject bump
+
+The 0.3.1 release workflow rejected the tag because pyproject.toml
+still said `version = "0.3.0"` on the tagged commit (the version-bump
+Edit didn't persist into the commit; the regex fix did). PyPI publish
+never fired for 0.3.1. Skipping to 0.3.2 rather than rewriting the
+broken v0.3.1 tag. Identical content to the intended 0.3.1.
+
 ## 0.3.1 (2026-05-17)
 
 ### Fixed — `normalize_period('2024-25', ...)` raised "Invalid month"
