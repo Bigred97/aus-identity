@@ -25,15 +25,33 @@ from __future__ import annotations
 from importlib.metadata import PackageNotFoundError
 from importlib.metadata import version as _version
 
+from .anzsic import (
+    ANZSIC_DIVISIONS,
+    anzsic_division,
+    anzsic_division_for_code,
+    anzsic_division_name,
+    normalize_anzsic_division,
+)
+from .period import (
+    normalize_period,
+    to_date,
+    to_date_end,
+    to_month,
+    to_quarter,
+    to_year,
+)
 from .postcode import (
     is_valid_postcode,
     normalize_postcode,
     postcode_to_state,
 )
 from .state import (
+    NEM_REGIONS,
     STATE_NAMES,
+    nem_region_to_state,
     normalize_state,
     state_full_name,
+    state_to_nem_region,
 )
 
 try:
@@ -42,11 +60,25 @@ except PackageNotFoundError:  # editable install before metadata is generated
     __version__ = "0.0.0+unknown"
 
 __all__ = [
+    "ANZSIC_DIVISIONS",
+    "NEM_REGIONS",
     "STATE_NAMES",
     "__version__",
+    "anzsic_division",
+    "anzsic_division_for_code",
+    "anzsic_division_name",
     "is_valid_postcode",
+    "nem_region_to_state",
+    "normalize_anzsic_division",
+    "normalize_period",
     "normalize_postcode",
     "normalize_state",
     "postcode_to_state",
     "state_full_name",
+    "state_to_nem_region",
+    "to_date",
+    "to_date_end",
+    "to_month",
+    "to_quarter",
+    "to_year",
 ]

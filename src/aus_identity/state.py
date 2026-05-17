@@ -100,6 +100,83 @@ def normalize_state(state: str) -> str:
     )
 
 
+NEM_REGIONS: Final[dict[str, str]] = {
+    "NSW": "NSW1",
+    "VIC": "VIC1",
+    "QLD": "QLD1",
+    "SA": "SA1",
+    "TAS": "TAS1",
+    # ACT shares the NSW1 grid; NT and WA have separate grids (not NEM members).
+}
+
+# Reverse map (NEM region code → state short code) for fast normalisation.
+_NEM_TO_STATE: Final[dict[str, str]] = {region: state for state, region in NEM_REGIONS.items()}
+
+
+def state_to_nem_region(state: str) -> str:
+    """Translate an AU state code to its NEM (National Electricity Market) region.
+
+    AEMO's NEM uses region codes like 'NSW1', 'VIC1', etc. — distinct from
+    the state short codes used by ABS, ATO, APRA, AIHW, ASIC. Use this helper
+    to bridge state-level data (e.g. ABS LF unemployment by state) with NEM
+    energy data (e.g. aemo-mcp dispatch_price by region).
+
+    Args:
+        state: Anything `normalize_state` accepts.
+
+    Raises:
+        ValueError: if the input cannot be matched OR the state is not a NEM
+            member (ACT shares NSW1 — pass 'NSW' explicitly. NT and WA are
+            on separate grids and have no AEMO NEM coverage).
+
+    Examples:
+        >>> state_to_nem_region("NSW")
+        'NSW1'
+        >>> state_to_nem_region("vic")
+        'VIC1'
+        >>> state_to_nem_region("Tasmania")
+        'TAS1'
+    """
+    code = normalize_state(state)
+    if code not in NEM_REGIONS:
+        raise ValueError(
+            f"{code!r} is not a NEM member. NEM regions cover NSW, VIC, QLD, SA, TAS "
+            f"(map: {NEM_REGIONS}). ACT shares the NSW1 grid — pass 'NSW' to get NSW1. "
+            "NT and WA have separate grids with no AEMO NEM coverage."
+        )
+    return NEM_REGIONS[code]
+
+
+def nem_region_to_state(region: str) -> str:
+    """Translate a NEM region code (e.g. 'NSW1') back to a state short code.
+
+    Args:
+        region: NEM region code — 'NSW1', 'VIC1', 'QLD1', 'SA1', 'TAS1'.
+            Case-insensitive.
+
+    Raises:
+        ValueError: if the input is not a known NEM region.
+
+    Examples:
+        >>> nem_region_to_state("NSW1")
+        'NSW'
+        >>> nem_region_to_state("vic1")
+        'VIC'
+    """
+    if not isinstance(region, str):
+        raise ValueError(
+            f"region must be a string, got {type(region).__name__}. "
+            f"Try one of: {', '.join(sorted(NEM_REGIONS.values()))}."
+        )
+    r = region.strip().upper()
+    if r not in _NEM_TO_STATE:
+        raise ValueError(
+            f"{region!r} is not a known NEM region. "
+            f"Valid NEM regions: {', '.join(sorted(NEM_REGIONS.values()))}."
+        )
+    return _NEM_TO_STATE[r]
+
+
 def state_full_name(state: str) -> str:
     """Return the official full name for a state/territory code.
 

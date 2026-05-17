@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.3.0 (2026-05-17)
+
+### Added — period normalisation + ANZSIC industry crosswalks
+
+Two new modules unblock the remaining cross-source workflow gaps that v0.2.0 couldn't close:
+
+**Period normalisation** (`aus_identity.period`):
+- `to_quarter('2025-05')` → `'2025-Q2'` · `to_quarter('2025-Q1')` → `'2025-Q1'` (pass-through)
+- `to_month('2025-Q2')` → `'2025-04'` · `to_year('2025-Q3')` → `'2025'`
+- `to_date('2025-Q1')` → `'2025-01-01'` (start-of-period) · `to_date_end('2025-Q1')` → `'2025-03-31'` (end-of-period, leap-year-aware)
+- `normalize_period(period, target_grain)` — single-entry helper
+
+Closes the cross-source workflow pain where customers pass `'2025-Q1'` to rba/aemo (which only accept daily granularity) or `'2025-MM-DD'` to abs (which only accepts up to month). Composers can now snap inputs to each sister's native grain without per-customer translation logic.
+
+**ANZSIC industry crosswalks** (`aus_identity.anzsic`):
+- `ANZSIC_DIVISIONS` — 19-row dict: A→Agriculture, B→Mining, ... S→Other Services
+- `anzsic_division('A')` → `'Agriculture, Forestry and Fishing'`
+- `anzsic_division_for_code('011')` → `'A'` (handles 2/3/4-digit codes — Subdivision, Group, Class)
+- `normalize_anzsic_division(value)` — accepts letter, full name, or numeric code, returns canonical letter
+
+Closes the industry-employment cross-source workflow. ato encodes industries as `'011 Nursery and Floriculture Production'`, wgea as `'Accommodation'` (name) + `'0803'` (4-digit class), abs LF has no industry dim at all. The new helpers let composers bridge these without each sister rolling its own ANZSIC table.
+
+**Wheel size stays under 20 KB** (zero-dep promise preserved). Full Class-level (1006-row) lookup deferred to v0.4 — Division and Group resolution cover ~95% of cross-source customer queries.
+
+## 0.2.0 (2026-05-17)
+
+### Added — NEM (National Electricity Market) region crosswalks
+
+Two new helpers that bridge state-level data (ABS / ATO / APRA / etc.) with NEM-region energy data (aemo-mcp):
+
+- `state_to_nem_region(state)` — `'NSW'` → `'NSW1'`, `'Tasmania'` → `'TAS1'`. Raises with helpful hint when the state is not a NEM member (ACT/NT/WA — ACT shares the NSW1 grid; NT and WA have separate grids).
+- `nem_region_to_state(region)` — `'NSW1'` → `'NSW'` (round-trip inverse).
+- `NEM_REGIONS` constant — `{'NSW': 'NSW1', 'VIC': 'VIC1', ...}` for direct lookup.
+
+Unblocks the climate × electricity workflow (au-weather Sydney → state='NSW' → state_to_nem_region → 'NSW1' → aemo-mcp dispatch_region) end-to-end without consumer code maintaining its own mapping. Mirrors the existing `STATE_NAMES` / `normalize_state` / `state_full_name` pattern. Back-compat preserved (additive only).
+
 ## 0.1.0 (2026-05-15)
 
 Initial release. The cross-source identity layer for the Australian public-data MCP stack and anyone else building software that touches multiple AU government data sources.
