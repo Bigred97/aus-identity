@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.3.1 (2026-05-17)
+
+### Fixed — `normalize_period('2024-25', ...)` raised "Invalid month"
+
+The `_RE_MONTH` regex (`^(\d{4})-(\d{2})$`) ran before `_RE_FISCAL`
+(`^(\d{4})-(\d{2,4})$`); both match `'2024-25'`. The MONTH branch
+rejected month=25 as invalid and raised before fiscal could match.
+
+WGEA labels every reporting year `YYYY-YY` (`'2024-25'`, `'2023-24'`,
+etc.), so any caller normalising a WGEA period hit this. Now the
+MONTH branch only consumes values 1-12; everything else falls through
+to FISCAL.
+
+```python
+normalize_period('2024-25', 'year')      # '2024'  (was ValueError)
+normalize_period('2024-25', 'quarter')   # '2024-Q1' — FY-start quarter
+normalize_period('2024-12', 'year')      # '2024'  (still works)
+normalize_period('2024-2025', 'year')    # '2024'  (4-digit FY suffix)
+```
+
+4 regression tests in `tests/test_period.py`. 139 tests still pass.
+
 ## 0.3.0 (2026-05-17)
 
 ### Added — period normalisation + ANZSIC industry crosswalks

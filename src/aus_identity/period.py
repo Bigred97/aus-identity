@@ -70,9 +70,11 @@ def _parse(period: str) -> tuple[int, int | None, int | None, int | None]:
         return (int(m.group(1)), 2 * h - 1, None, None)  # S1 → Q1, S2 → Q3
     if (m := _RE_MONTH.match(s)):
         y, mo = int(m.group(1)), int(m.group(2))
-        if not (1 <= mo <= 12):
-            raise ValueError(f"Invalid month in {period!r}.")
-        return (y, ((mo - 1) // 3) + 1, mo, None)
+        if 1 <= mo <= 12:
+            return (y, ((mo - 1) // 3) + 1, mo, None)
+        # 13-99 isn't a month — it's the second half of a YYYY-YY fiscal-year
+        # label (e.g. '2024-25' means FY starting 2024). Fall through to the
+        # fiscal regex below rather than raising "Invalid month".
     if (m := _RE_FISCAL.match(s)):
         # 2024-25 or 2024-2025 — fiscal year starting in given calendar year
         return (int(m.group(1)), None, None, None)
